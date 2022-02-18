@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wikiquarium</title>
     <link rel="stylesheet" href="<?php echo esc_url( get_stylesheet_directory_uri() ); ?>/wikiquarium/style.css" >
+    <script src="<?php echo esc_url("https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js");?>"></script>
+    <script src="<?php echo esc_url( get_stylesheet_directory_uri() ); ?>/wikiquarium/script.js"></script>
 </head>
 <body>
     <header>
@@ -12,10 +14,10 @@
             <h2 class="title">
                 Wikiquarium
             </h2>
-            <img class="menu" src="<?php echo esc_url( get_stylesheet_directory_uri() ); ?>/wikiquarium/Menu1.ico" alt="menu">
+            <img class="menu" id="menu-button" src="<?php echo esc_url( get_stylesheet_directory_uri() ); ?>/wikiquarium/icons/Menu1.ico" alt="menu">
         </nav>
         <nav class="popup">
-            <div class="navigation">
+            <div class="navigation" id="navigation">
                 <h3>Menu</h3>
                 <a href="dev-dyl.com">Home</a>
                 <a href="">Restart</a>
@@ -23,8 +25,10 @@
             </div>
         </nav>
     </header>
-    
-    <div class="whole">
+    <div class="background">
+        
+    </div>
+    <div class="playground">
         
     </div>
 </body>
