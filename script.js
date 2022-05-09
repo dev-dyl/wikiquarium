@@ -5,7 +5,7 @@ var fishList;
 $(document).ready(function(){
 
     
-
+    // Create and empty list for the Fish on page load. Quasi-heap of fish I guess?
     fishList = [];
 
     
@@ -76,9 +76,16 @@ class Fish {
 
     constructor(id, startingX, startingY){
         console.log("Constructing " + id);
+
+        // send xhr request first to reduce idle time
+        this.xhrProm = this.findLink().then((value) => {
+            //console.log(value);
+            this.wikiObj = value;
+        });
+
         this.id = id;
         // Math.random returns a value between 0 and 1
-        // Allowing -5 <= amplitude <= 4 and 0.1 <= period <= 3;
+        // Allowing -5 <= amplitude <= 4 and 0.1 <= period <= 3 (arbitrary)
         this.amplitude = (Math.floor(Math.random() * 10) - 5);
         let tmp = Math.random() * 4;
         this.periodcity = (tmp < 0.1) ? 0.1 : tmp;
@@ -86,27 +93,20 @@ class Fish {
         this.PosX = startingX;
         this.PosY = startingY;
 
-        this.findLink().then((value) => {
-            console.log(value);
-            this.wikiObj = value;
-        });
-
-        //this.findLink().then((value) => {this.link = value});
-        
-        //console.log(this);
     }
 
     getId(){
-        console.log("Returning " + this.id);
+        //console.log("Returning " + this.id);
         return this.id;
     }
 
     nextPosition(dx){
         let x = this.PosX + dx;
+        // y = A*sin(p*x);
         let y = this.amplitude * Math.sin(this.periodcity * x);
         // derivative at x + dx in radians
         let theta = (this.amplitude * this.periodcity) * Math.cos(this.periodcity * x);
-        // convert to degrees
+        // convert to degrees for later use in HTML
         theta = theta * (180/Math.PI);
 
         let output = {
@@ -119,9 +119,9 @@ class Fish {
     }
 
     getHTML(){
-        console.log(this.link);
-        if(this.link){
-            return '<div class="fish-container" id="fish-' + this.id + '><a href="' +  this.link + '>' + this.link.split("/").pop() + '</a>"</div>';
+        //console.log(this.link);
+        if(this.wikiObj.canonicalurl){
+            return '<div class="fish-container" id="fish-' + this.id + '"><a href="' +  this.wikiObj.canonicalurl + '">' + this.wikiObj.title + '</a></div>';
         }
         else{
             return null;
@@ -146,8 +146,12 @@ class Fish {
         let link = myLink.then((value)=>{return value;},(error)=>{return error;});
         return await link;
         */
-        let prom = new Promise((resolve,reject) => {
+
+        //TODO: Donate to Wikipedia as an apology for spamming this during testing...
+        return new Promise((resolve,reject) => {
             let xhr = new XMLHttpRequest();
+
+            // Endpoint and parameters defined @ https://en.wikipedia.org/w/api.php from https://www.mediawiki.org/wiki/API:Main_page
             const url = 'https://en.wikipedia.org/w/api.php';
             const params = {
                 action: "query",
@@ -155,36 +159,43 @@ class Fish {
                 prop: "info",
                 inprop: "url",
                 generator: "random",
+                //1 returned random article per fish. May need to adjust for rate limitaion
                 grnlimit: "1",
                 grnnamespace: "0"
             };
-    
+
             var endpoint = url + "?origin=*";
             Object.keys(params).forEach((key)=>{endpoint += ("&" + key + "=" + params[key]);});
-    
+
             xhr.open("GET", endpoint, true);
             xhr.onload = function(){
                 let data = JSON.parse(this.response);
+                // Returns a list of pages keyed by pageID, ref at [0] returns page info
                 resolve(Object.values(data.query.pages)[0]);
             }
             xhr.send();
         });
-        
-        return prom;
-
     }
 
 }
 
-async function driver(){
-
-    let thisFish = new Fish(fishList.length, -100, ($(window).height / 2));
-    console.log(thisFish);
-    fishList.push(thisFish);
-    moveFish(thisFish.getId());
-    
+function driver(){
+    spawnFish();
 }
 
+
+async function spawnFish(){
+
+    //let thisFish = new Fish(fishList.length, -100, ($(window).height / 2));
+    
+    let thisFish = new Fish(fishList.length, ($(window).width / 2), ($(window).height / 2));
+    fishList.push(thisFish);
+    await thisFish.xhrProm;
+    console.log(thisFish);
+    $(".playground").append(thisFish.getHTML());
+    //moveFish(thisFish.getId());
+
+}
 
 
 function moveFish(fishID){
