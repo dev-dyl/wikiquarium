@@ -83,6 +83,8 @@ class Fish {
             this.wikiObj = value;
         });
 
+        this.PosX = startingX;
+        this.PosY = startingY;
         this.id = id;
         // Math.random returns a value between 0 and 1
         // Allowing -5 <= amplitude <= 4 and 0.1 <= period <= 3 (arbitrary)
@@ -90,9 +92,11 @@ class Fish {
         let tmp = Math.random() * 4;
         this.periodcity = (tmp < 0.1) ? 0.1 : tmp;
 
-        this.PosX = startingX;
-        this.PosY = startingY;
+    }
 
+    applyInitPos(){
+        console.log("Set Position: " + this.PosX + " // " + this.PosY);
+        $("#fish-" + this.id).css({"left":this.PosX,"top":this.PosY});
     }
 
     getId(){
@@ -121,7 +125,7 @@ class Fish {
     getHTML(){
         //console.log(this.link);
         if(this.wikiObj.canonicalurl){
-            return '<div class="fish-container" id="fish-' + this.id + '"><a href="' +  this.wikiObj.canonicalurl + '">' + this.wikiObj.title + '</a></div>';
+            return '<div class="fish-container" id="fish-' + this.id + '" style="left: ' + this.PosX + '; top: ' + this.PosY + ';"><a href="' +  this.wikiObj.canonicalurl + '">' + this.wikiObj.title + '</a></div>';
         }
         else{
             return null;
@@ -188,11 +192,12 @@ async function spawnFish(){
 
     //let thisFish = new Fish(fishList.length, -100, ($(window).height / 2));
     
-    let thisFish = new Fish(fishList.length, ($(window).width / 2), ($(window).height / 2));
+    let thisFish = new Fish(fishList.length, ($(window).width() / 2), ($(window).height() / 2));
     fishList.push(thisFish);
     await thisFish.xhrProm;
     console.log(thisFish);
     $(".playground").append(thisFish.getHTML());
+    thisFish.applyInitPos();
     //moveFish(thisFish.getId());
 
 }
