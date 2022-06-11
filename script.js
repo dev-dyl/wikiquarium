@@ -5,7 +5,7 @@ var fishList;
 $(document).ready(function(){
 
     
-    // Create and empty list for the Fish on page load. Quasi-heap of fish I guess?
+    // Create and empty list for the Fish on page load.
     fishList = [];
 
     
@@ -58,7 +58,7 @@ class Fish {
     // periodcity
 
     //wikiObj:
-    /*
+    /* Example
     canonicalurl: "https://en.wikipedia.org/wiki/Florence_Bagley"
     contentmodel: "wikitext"
     editurl: "https://en.wikipedia.org/w/index.php?title=Florence_Bagley&action=edit"
@@ -74,23 +74,28 @@ class Fish {
     touched: "2022-05-06T05:35:49Z"
     */
 
-    constructor(id, startingX, startingY){
+    constructor(id, windowX, windowY){
         console.log("Constructing " + id);
-
+        this.id = id;
         // send xhr request first to reduce idle time
         this.xhrProm = this.findLink().then((value) => {
             //console.log(value);
             this.wikiObj = value;
         });
 
-        this.PosX = startingX;
-        this.PosY = startingY;
-        this.id = id;
         // Math.random returns a value between 0 and 1
+        let seed = Math.random();
+
+        /*---- Position Generation ----*/
+        // Boolean direction: true > left to right
+        this.direction = (seed < .5);
+        this.PosX = (direction) ? 0 : windowX;
+        this.PosY = windowY * seed;
+        
+        /*---- Movement Generation ----*/
         // Allowing -5 <= amplitude <= 4 and 0.1 <= period <= 3 (arbitrary)
-        this.amplitude = (Math.floor(Math.random() * 10) - 5);
-        let tmp = Math.random() * 4;
-        this.periodcity = (tmp < 0.1) ? 0.1 : tmp;
+        this.amplitude = (Math.floor(seed * 10) - 5);
+        this.periodcity = ((seed * 4) < 0.1) ? 0.1 : (seed * 4);
 
     }
 
@@ -134,22 +139,6 @@ class Fish {
     }
 
     async findLink(){
-        /*
-        console.log("Finding " + this.id);
-        let myLink = new Promise(function(resolve, reject) {
-            let xhr = new XMLHttpRequest();
-            xhr.open("HEAD", 'https://en.wikipedia.org/wiki/Special:Random');
-            let loc = xhr.getResponseHeader("location");
-            if(loc != null){
-                resolve(loc);
-            }
-            else{
-                reject("ERR - No Location");
-            }
-        });
-        let link = myLink.then((value)=>{return value;},(error)=>{return error;});
-        return await link;
-        */
 
         //TODO: Donate to Wikipedia as an apology for spamming this during testing...
         return new Promise((resolve,reject) => {
@@ -192,7 +181,7 @@ async function spawnFish(){
 
     //let thisFish = new Fish(fishList.length, -100, ($(window).height / 2));
     
-    let thisFish = new Fish(fishList.length, ($(window).width() / 2), ($(window).height() / 2));
+    let thisFish = new Fish(fishList.length, $(window).width(), $(window).height());
     fishList.push(thisFish);
     await thisFish.xhrProm;
     console.log(thisFish);
